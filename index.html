@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klausuleret Tilskudstjekker</title>
+    
+    <!-- 1. Hent Tailwind CSS (Design) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Hent React og ReactDOM (Motor) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 3. Hent Babel (Oversætter koden i browseren) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <!-- Her indsættes appen -->
+    <div id="root"></div>
+
+    <!-- Her ligger selve React koden -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- IKONER (Erstattet lucide-react med SVG for at virke direkte i browseren) ---
+        const IconBase = ({ children, color = "currentColor", size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const Syringe = (props) => (
+            <IconBase {...props}><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></IconBase>
+        );
+        const AlertCircle = (props) => (
+            <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>
+        );
+        const CheckCircle = (props) => (
+            <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>
+        );
+        const XCircle = (props) => (
+            <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></IconBase>
+        );
+        const ShieldAlert = (props) => (
+            <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>
+        );
+        const HeartPulse = (props) => (
+            <IconBase {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></IconBase>
+        );
+        const Info = (props) => (
+            <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></IconBase>
+        );
+
+        // --- HOVED KOMPONENT ---
+        const App = () => {
+            // State
+            const [age, setAge] = useState('');
+            const [showRules, setShowRules] = useState(false);
+            const [conditions, setConditions] = useState({
+                splenectomy: false,
+                organTransplant: false,
+                stemCell: false,
+                cochlear: false,
+                csfLeak: false,
+                prevInvasive: false,
+                immunosuppression: false,
+                diabetes: false,
+                heartChronic: false,
+                lungChronic: false,
+                kidneyChronic: false,
+                liverChronic: false,
+                copdSevere: false,
+                copdGeneral: false,
+            });
+
+            // Opdateret farve: #27717d
+            const CARD_STYLE = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all duration-200";
+            
+            // Handler
+            const toggleCondition = (key) => {
+                setConditions(prev => ({ ...prev, [key]: !prev[key] }));
+            };
+
+            // Logic definitions - Moved to outer scope so they are accessible in Render
+            const ageNum = parseInt(age) || 0;
+
+            const hasSevereImmuneCondition = 
+                conditions.splenectomy || 
+                conditions.organTransplant || 
+                conditions.stemCell || 
+                conditions.cochlear || 
+                conditions.csfLeak || 
+                conditions.prevInvasive || 
+                conditions.immunosuppression;
+
+            const hasChronicDisease65PlusGroup = 
+                conditions.diabetes || 
+                conditions.heartChronic || 
+                conditions.lungChronic || 
+                conditions.kidneyChronic || 
+                conditions.liverChronic ||
+                conditions.copdSevere || 
+                conditions.copdGeneral; 
+
+            // Logic Calculation
+            const calculateEligibility = () => {
+                
+                if (ageNum < 18) return null;
+
+                // 1. PCV20 & Capvaxive
+                const pcv20_capvaxive = 
+                (ageNum >= 18 && hasSevereImmuneCondition) || 
+                (ageNum >= 65 && hasChronicDisease65PlusGroup);
+
+                // 2. PPV23
+                const ppv23 = 
+                (ageNum >= 65) || 
+                (ageNum >= 18 && hasSevereImmuneCondition) || 
+                (ageNum >= 18 && conditions.copdSevere);
+
+                // 3. RS-Virus
+                const rsv = (ageNum >= 60 && (conditions.copdGeneral || conditions.copdSevere));
+
+                // 4. Helvedesild
+                const shingles = (ageNum >= 18 && conditions.immunosuppression);
+
+                return {
+                pcv20: pcv20_capvaxive,
+                capvaxive: pcv20_capvaxive,
+                ppv23: ppv23,
+                rsv: rsv,
+                shingrix: shingles
+                };
+            };
+
+            const results = calculateEligibility();
+            const validAge = parseInt(age) >= 18;
+
+            // UI Render
+            return (
+                <div className="min-h-screen pb-12">
+                    {/* Header - Bruger den nye farve #27717d */}
+                    <header className="bg-[#27717d] !text-white p-6 shadow-md">
+                        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white/10 p-2 rounded-lg">
+                                <Syringe size={28} />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold !text-white">Klausuleret Tilskudstjekker</h1>
+                                <p className="!text-white opacity-80 text-sm">Hurtigt overblik over klausuleret tilskud (Kun 18+)</p>
+                            </div>
+                        </div>
+                        {/* Mørkere variant til input-feltet: #1f5a64 */}
+                        <div className="flex items-center bg-[#1f5a64] rounded-lg px-4 py-2">
+                            <span className="text-sm font-medium mr-2">Indtast Alder:</span>
+                            <input 
+                            type="number" 
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                            placeholder="År"
+                            className="w-20 px-3 py-1 rounded text-slate-900 font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#27717d]"
+                            />
+                        </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-5xl mx-auto p-4 md:p-6">
+                        
+                        {/* Age Warning */}
+                        {age && parseInt(age) < 18 && (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
+                            <div className="flex items-center">
+                            <AlertCircle className="text-red-500 mr-3" />
+                            <p className="font-bold text-red-700">Bemærk: Denne guide dækker kun vaccination af personer over 18 år.</p>
+                            </div>
+                        </div>
+                        )}
+
+                        {!age && (
+                        <div className="bg-[#27717d]/10 border-l-4 border-[#27717d] p-6 mb-6 rounded shadow-sm text-center">
+                            <p className="text-[#27717d] font-medium text-lg">Start med at indtaste din alder øverst til højre for at se mulighederne.</p>
+                        </div>
+                        )}
+
+                        {validAge && (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            
+                            {/* LEFT COLUMN: INPUTS */}
+                            <div className="lg:col-span-5 space-y-4">
+                            
+                            {/* Group 1: Severe Conditions */}
+                            <div className={CARD_STYLE}>
+                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <ShieldAlert className="text-indigo-600" size={20} />
+                                <h3 className="font-bold text-slate-800">Svær Immunsvækkelse / Særlige Tilstande</h3>
+                                </div>
+                                <div className="space-y-3">
+                                <ConditionRow 
+                                    label="Immunsuppression (pga. sygdom/behandling)" 
+                                    checked={conditions.immunosuppression} 
+                                    onChange={() => toggleCondition('immunosuppression')}
+                                    highlight
+                                />
+                                <ConditionRow label="Mangler milt / Splenektomi" checked={conditions.splenectomy} onChange={() => toggleCondition('splenectomy')} />
+                                <ConditionRow label="Organtransplantation" checked={conditions.organTransplant} onChange={() => toggleCondition('organTransplant')} />
+                                <ConditionRow label="Stamcelletransplantation" checked={conditions.stemCell} onChange={() => toggleCondition('stemCell')} />
+                                <ConditionRow label="Cochlear implantation" checked={conditions.cochlear} onChange={() => toggleCondition('cochlear')} />
+                                <ConditionRow label="Liquorlækage" checked={conditions.csfLeak} onChange={() => toggleCondition('csfLeak')} />
+                                <ConditionRow label="Tidligere invasiv pneumokoksygdom" checked={conditions.prevInvasive} onChange={() => toggleCondition('prevInvasive')} />
+                                </div>
+                            </div>
+
+                            {/* Group 2: Chronic Diseases */}
+                            <div className={CARD_STYLE}>
+                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <HeartPulse className="text-rose-600" size={20} />
+                                <h3 className="font-bold text-slate-800">Kroniske Sygdomme</h3>
+                                <span className="text-xs text-slate-400 font-normal ml-auto">(Primært relevant for 65+)</span>
+                                </div>
+                                <div className="space-y-3">
+                                <ConditionRow label="Diabetes mellitus" checked={conditions.diabetes} onChange={() => toggleCondition('diabetes')} />
+                                <ConditionRow label="Kronisk hjertesygdom" checked={conditions.heartChronic} onChange={() => toggleCondition('heartChronic')} />
+                                <ConditionRow label="Kronisk nyresygdom" checked={conditions.kidneyChronic} onChange={() => toggleCondition('kidneyChronic')} />
+                                <ConditionRow label="Kronisk leversygdom" checked={conditions.liverChronic} onChange={() => toggleCondition('liverChronic')} />
+                                </div>
+                            </div>
+
+                            {/* Group 3: Lungs */}
+                            <div className={CARD_STYLE}>
+                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <div className="p-1 bg-cyan-100 rounded text-cyan-700 font-bold text-xs">KOL</div>
+                                <h3 className="font-bold text-slate-800">Lungesygdomme</h3>
+                                </div>
+                                <div className="space-y-3">
+                                <ConditionRow 
+                                    label="Generel Kronisk Lungesygdom / KOL" 
+                                    subLabel="Bruges bl.a. til RS-virus vurdering"
+                                    checked={conditions.lungChronic || conditions.copdGeneral} 
+                                    onChange={() => {
+                                    toggleCondition('lungChronic');
+                                    toggleCondition('copdGeneral');
+                                    }} 
+                                />
+                                <ConditionRow 
+                                    label="Svær KOL (FEV1 < 40% af forventet)" 
+                                    subLabel="Giver adgang til PPV23 før 65 år"
+                                    checked={conditions.copdSevere} 
+                                    onChange={() => toggleCondition('copdSevere')} 
+                                />
+                                </div>
+                            </div>
+
+                            </div>
+
+                            {/* RIGHT COLUMN: RESULTS */}
+                            <div className="lg:col-span-7 space-y-6">
+                            <div className="bg-slate-800 text-white p-4 rounded-xl flex justify-between items-center shadow-lg">
+                                <h2 className="text-lg font-semibold !text-white">Status for Klausuleret Tilskud</h2>
+                                <div className="text-sm opacity-75 !text-white">Alder: {age} år</div>
+                            </div>
+
+                            <div className="grid gap-4">
+                                {/* PNEUMOKOKKER BLOCK */}
+                                <div className="space-y-2">
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">Pneumokokker</h3>
+                                <ResultCard 
+                                    title="20-valent" 
+                                    subtitle="Konjugeret vaccine"
+                                    eligible={results.pcv20} 
+                                    reason={results.pcv20 
+                                    ? (parseInt(age) >= 65 && !hasSevereImmuneCondition ? "Godkendt pga. Alder 65+ OG Kronisk Sygdom" : "Godkendt pga. Særlig Risikogruppe")
+                                    : (parseInt(age) >= 65 ? "Mangler kronisk diagnose for tilskud" : "Ikke i målgruppen")
+                                    }
+                                />
+                                <ResultCard 
+                                    title="21-valent" 
+                                    subtitle="Konjugeret vaccine"
+                                    eligible={results.capvaxive} 
+                                    reason={results.capvaxive 
+                                    ? (parseInt(age) >= 65 && !hasSevereImmuneCondition ? "Godkendt pga. Alder 65+ OG Kronisk Sygdom" : "Godkendt pga. Særlig Risikogruppe")
+                                    : (parseInt(age) >= 65 ? "Mangler kronisk diagnose for tilskud" : "Ikke i målgruppen")
+                                    }
+                                />
+                                <ResultCard 
+                                    title="23-valent" 
+                                    subtitle="Polysakkaridvaccine"
+                                    eligible={results.ppv23} 
+                                    reason={results.ppv23
+                                    ? (parseInt(age) >= 65 ? "Godkendt pga. Alder 65+" : "Godkendt pga. Risikogruppe/Svær KOL")
+                                    : "Ikke i målgruppen (Kræver 65+ eller særlig risiko)"
+                                    }
+                                />
+                                </div>
+
+                                {/* HELVEDESILD BLOCK */}
+                                <div className="space-y-2 mt-4">
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">Helvedesild (Herpes Zoster)</h3>
+                                <ResultCard 
+                                    title="Helvedesild" 
+                                    subtitle="Inaktiveret rekombinant vaccine"
+                                    eligible={results.shingrix} 
+                                    reason={results.shingrix
+                                    ? "Godkendt pga. Immunsuppression"
+                                    : "Ikke godkendt. Kræver immunsuppression."
+                                    }
+                                />
+                                </div>
+
+                                {/* RSV BLOCK */}
+                                <div className="space-y-2 mt-4">
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">RS-Virus</h3>
+                                <ResultCard 
+                                    title="RS-virus" 
+                                    subtitle="RSV-vacciner"
+                                    eligible={results.rsv} 
+                                    reason={results.rsv
+                                    ? "Godkendt pga. Alder 60+ og KOL"
+                                    : (parseInt(age) >= 60 ? "Mangler KOL diagnose" : "Kræver alder 60+")
+                                    }
+                                />
+                                </div>
+                            </div>
+                            </div>
+
+                        </div>
+                        )}
+
+                        {/* TOGGLE RULES */}
+                        <div className="mt-12 border-t border-slate-200 pt-6">
+                        <button 
+                            onClick={() => setShowRules(!showRules)}
+                            className="flex items-center text-[#27717d] hover:text-[#1f5a64] font-medium transition-colors"
+                        >
+                            <Info className="mr-2" size={20}/>
+                            {showRules ? "Skjul Regler (Tekstoverblik)" : "Vis Regler (Tekstoverblik)"}
+                        </button>
+
+                        {showRules && (
+                            <div className="mt-4 bg-slate-100 p-6 rounded-xl text-slate-700 text-sm leading-relaxed space-y-4">
+                            <h3 className="font-bold text-lg text-slate-900">Regler for Klausuleret Tilskud (Voksne 18+)</h3>
+                            
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div>
+                                <h4 className="font-bold text-slate-900 mb-2">Pneumokokker (Prevenar 20 & Capvaxive)</h4>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    <li><strong>Alle 18+:</strong> Splenektomi, Organtransplantation, Cochlear implant, Stamcelletransplant, Liquorlækage, Tidligere invasiv pneumokoksygdom, Immunsuppression.</li>
+                                    <li><strong>Personer 65+:</strong> Som ovenstående ELLER kronisk sygdom (Diabetes, Hjerte, Lunge, Nyre, Lever).</li>
+                                </ul>
+
+                                <h4 className="font-bold text-slate-900 mt-4 mb-2">Pneumokokker (Pneumovax - 23-valent)</h4>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    <li><strong>Alle 65+:</strong> Har automatisk ret til tilskud (alder alene).</li>
+                                    <li><strong>Under 65:</strong> Samme risikogrupper som Prevenar 20 + Personer med KOL FEV1 &lt; 40%.</li>
+                                </ul>
+                                </div>
+
+                                <div>
+                                <h4 className="font-bold text-slate-900 mb-2">Helvedesild (Shingrix)</h4>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    <li><strong>Alle 18+:</strong> Med immunsuppression (pga. sygdom eller behandling).</li>
+                                </ul>
+
+                                <h4 className="font-bold text-slate-900 mt-4 mb-2">RS-Virus (Arexvy & Abrysvo)</h4>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    <li><strong>Personer 60+:</strong> Som har KOL.</li>
+                                </ul>
+                                </div>
+                            </div>
+                            </div>
+                        )}
+                        </div>
+
+                    </main>
+                </div>
+            );
+        };
+
+        const ConditionRow = ({ label, subLabel, checked, onChange, highlight = false }) => (
+            <label 
+                className={`flex items-start p-2 rounded cursor-pointer hover:bg-slate-50 transition-colors ${checked ? 'bg-[#27717d]/10' : ''}`}
+            >
+                <div className="mt-0.5 relative flex items-center">
+                <input 
+                    type="checkbox" 
+                    checked={checked} 
+                    onChange={onChange}
+                    className="w-5 h-5 text-[#27717d] rounded border-slate-300 focus:ring-[#27717d] cursor-pointer"
+                />
+                </div>
+                <div className="ml-3">
+                <span className={`text-sm select-none ${highlight && checked ? 'font-bold text-[#27717d]' : 'text-slate-700'}`}>
+                    {label}
+                </span>
+                {subLabel && <p className="text-xs text-slate-400 mt-0.5">{subLabel}</p>}
+                </div>
+            </label>
+        );
+
+        const ResultCard = ({ title, subtitle, eligible, reason }) => (
+            <div className={`flex justify-between items-start p-4 rounded-lg border-l-4 shadow-sm transition-all ${eligible ? 'bg-white border-green-500' : 'bg-slate-50 border-slate-300 opacity-60'}`}>
+                <div className="flex-1">
+                <h4 className={`font-bold ${eligible ? 'text-slate-900' : 'text-slate-500'}`}>{title}</h4>
+                <p className="text-xs text-slate-500">{subtitle}</p>
+                {eligible && <p className="text-xs text-green-700 font-medium mt-1">{reason}</p>}
+                {!eligible && <p className="text-xs text-slate-400 mt-1">{reason}</p>}
+                
+                <div className="flex items-center gap-4 mt-3">
+                    <a href="https://www.sst.dk/vidensbase/forebyggelse/vaccination/tilskud-til-vacciner-til-visse-persongrupper" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="inline-flex items-center text-xs text-[#27717d] hover:text-[#1f5a64] underline">
+                       Læs mere
+                       <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                       </svg>
+                    </a>
+
+                    {eligible && (
+                        <a href="https://medicals.app4.geckobooking.dk/site/index.php?icCode=038dfa5634ed32994ee62dc273ef2f26b9708&dTpl=1" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="inline-flex items-center bg-[#27717d] !text-white px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-[#1f5a64] transition-colors shadow-sm">
+                           Book tid
+                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1.5 w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                           </svg>
+                        </a>
+                    )}
+                </div>
+
+                </div>
+                <div className="ml-4 mt-1">
+                {eligible ? <CheckCircle className="text-green-500" size={28} /> : <XCircle className="text-slate-300" size={24} />}
+                </div>
+            </div>
+        );
+
+        // --- SIKKER INITIALISERING TIL ELEMENTOR ---
+        const initApp = () => {
+            const rootElement = document.getElementById('root');
+            // Tjek om React og ReactDOM er hentet, og om 'root' div'en eksisterer
+            if (rootElement && window.React && window.ReactDOM) {
+                const root = ReactDOM.createRoot(rootElement);
+                root.render(<App />);
+            } else {
+                // Hvis Elementor eller Cache-plugin driller, venter vi 100ms og prøver igen
+                setTimeout(initApp, 100);
+            }
+        };
+
+        // Start applikationen når alt er loadet
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
