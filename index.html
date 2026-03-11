@@ -16,10 +16,19 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8fafc; /* slate-50 */
+        }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        /* Sikrer at der ikke opstår horisontal scroll */
+        #root { overflow-x: hidden; }
     </style>
 </head>
-<body class="bg-slate-50 m-0 p-0">
+<body>
 
     <!-- Her indsættes appen -->
     <div id="root"></div>
@@ -111,22 +120,29 @@
             // --- NY KODE START: Sender automatisk højden til WordPress ---
             useEffect(() => {
                 const sendHeight = () => {
-                    // Måler præcist på appens indhold for at undgå mobil-scroll fejl
-                    const wrapper = document.getElementById('app-wrapper');
-                    if (wrapper) {
-                        window.parent.postMessage({ 
-                            type: 'iframeResize', 
-                            height: wrapper.scrollHeight
-                        }, '*');
-                    }
+                    // Måler max højden af dokumentet for at undgå manglende bunde på mobil
+                    const height = Math.max(
+                        document.body.scrollHeight, 
+                        document.documentElement.scrollHeight,
+                        document.body.offsetHeight,
+                        document.documentElement.offsetHeight
+                    );
+                    
+                    window.parent.postMessage({ 
+                        type: 'iframeResize', 
+                        height: height
+                    }, '*');
                 };
 
+                // Kald den med det samme og når vinduet ændres
                 sendHeight();
                 window.addEventListener('resize', sendHeight);
                 
+                // Lytter efter alle ændringer i DOM'en (når du krydser bokse af, osv.)
                 const observer = new MutationObserver(sendHeight);
                 observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
+                // Tving et tjek 2 gange i sekundet for Safari på iPhone
                 const interval = setInterval(sendHeight, 500);
 
                 return () => {
@@ -134,7 +150,7 @@
                     observer.disconnect();
                     clearInterval(interval);
                 };
-            }, [conditions, showRules]); 
+            }, [conditions, showRules, age]); 
             // --- NY KODE SLUT ---
 
             // Logic Calculation
@@ -173,7 +189,7 @@
 
             // UI Render
             return (
-                <div id="app-wrapper" className="pb-12 bg-slate-50 w-full overflow-x-hidden">
+                <div id="app-wrapper" className="min-h-screen pb-12 bg-slate-50 w-full">
                     {/* Header - Bruger den nye farve #27717d */}
                     <header className="bg-[#27717d] !text-white p-6 shadow-md">
                         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -182,8 +198,8 @@
                                 <Syringe size={28} />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold !text-white">Klausuleret Tilskudstjekker</h1>
-                                <p className="!text-white opacity-80 text-sm">Hurtigt overblik over klausuleret tilskud (Kun 18+)</p>
+                                <h1 className="text-2xl font-bold !text-white !m-0 !p-0">Klausuleret Tilskudstjekker</h1>
+                                <p className="!text-white opacity-80 text-sm !m-0 !p-0">Hurtigt overblik over klausuleret tilskud (Kun 18+)</p>
                             </div>
                         </div>
                         {/* Mørkere variant til input-feltet: #1f5a64 */}
@@ -228,7 +244,7 @@
                             <div className={CARD_STYLE}>
                                 <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
                                 <ShieldAlert className="text-indigo-600" size={20} />
-                                <h3 className="font-bold text-slate-800">Svær Immunsvækkelse / Særlige Tilstande</h3>
+                                <h3 className="font-bold text-slate-800 !m-0 !p-0">Svær Immunsvækkelse / Særlige Tilstande</h3>
                                 </div>
                                 <div className="space-y-3">
                                 <ConditionRow 
@@ -250,7 +266,7 @@
                             <div className={CARD_STYLE}>
                                 <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
                                 <HeartPulse className="text-rose-600" size={20} />
-                                <h3 className="font-bold text-slate-800">Kroniske Sygdomme</h3>
+                                <h3 className="font-bold text-slate-800 !m-0 !p-0">Kroniske Sygdomme</h3>
                                 <span className="text-xs text-slate-400 font-normal ml-auto">(Primært relevant for 65+)</span>
                                 </div>
                                 <div className="space-y-3">
@@ -265,7 +281,7 @@
                             <div className={CARD_STYLE}>
                                 <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
                                 <div className="p-1 bg-cyan-100 rounded text-cyan-700 font-bold text-xs">KOL</div>
-                                <h3 className="font-bold text-slate-800">Lungesygdomme</h3>
+                                <h3 className="font-bold text-slate-800 !m-0 !p-0">Lungesygdomme</h3>
                                 </div>
                                 <div className="space-y-3">
                                 <ConditionRow 
@@ -291,14 +307,14 @@
                             {/* RIGHT COLUMN: RESULTS */}
                             <div className="lg:col-span-7 space-y-6">
                             <div className="bg-slate-800 text-white p-4 rounded-xl flex justify-between items-center shadow-lg">
-                                <h2 className="text-lg font-semibold !text-white">Status for Klausuleret Tilskud</h2>
+                                <h2 className="text-lg font-semibold !text-white !m-0 !p-0">Status for Klausuleret Tilskud</h2>
                                 <div className="text-sm opacity-75 !text-white">Alder: {age} år</div>
                             </div>
 
                             <div className="grid gap-4">
                                 {/* PNEUMOKOKKER BLOCK */}
                                 <div className="space-y-2">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">Pneumokokker</h3>
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1 !m-0 !mb-2">Pneumokokker</h3>
                                 <ResultCard 
                                     title="20-valent" 
                                     subtitle="Konjugeret vaccine"
@@ -330,7 +346,7 @@
 
                                 {/* HELVEDESILD BLOCK */}
                                 <div className="space-y-2 mt-4">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">Helvedesild (Herpes Zoster)</h3>
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1 !m-0 !mb-2">Helvedesild (Herpes Zoster)</h3>
                                 <ResultCard 
                                     title="Helvedesild" 
                                     subtitle="Inaktiveret rekombinant vaccine"
@@ -344,7 +360,7 @@
 
                                 {/* RSV BLOCK */}
                                 <div className="space-y-2 mt-4">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">RS-Virus</h3>
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1 !m-0 !mb-2">RS-Virus</h3>
                                 <ResultCard 
                                     title="RS-virus" 
                                     subtitle="RSV-vacciner"
@@ -435,10 +451,10 @@
         const ResultCard = ({ title, subtitle, eligible, reason }) => (
             <div className={`flex justify-between items-start p-4 rounded-lg border-l-4 shadow-sm transition-all ${eligible ? 'bg-white border-green-500' : 'bg-slate-50 border-slate-300 opacity-60'}`}>
                 <div className="flex-1">
-                <h4 className={`font-bold ${eligible ? 'text-slate-900' : 'text-slate-500'}`}>{title}</h4>
-                <p className="text-xs text-slate-500">{subtitle}</p>
-                {eligible && <p className="text-xs text-green-700 font-medium mt-1">{reason}</p>}
-                {!eligible && <p className="text-xs text-slate-400 mt-1">{reason}</p>}
+                <h4 className={`font-bold ${eligible ? 'text-slate-900' : 'text-slate-500'} !m-0 !p-0`}>{title}</h4>
+                <p className="text-xs text-slate-500 !m-0">{subtitle}</p>
+                {eligible && <p className="text-xs text-green-700 font-medium mt-1 !mb-0">{reason}</p>}
+                {!eligible && <p className="text-xs text-slate-400 mt-1 !mb-0">{reason}</p>}
                 
                 <div className="flex items-center gap-4 mt-3">
                     <a href="https://www.sst.dk/vidensbase/forebyggelse/vaccination/tilskud-til-vacciner-til-visse-persongrupper" 
