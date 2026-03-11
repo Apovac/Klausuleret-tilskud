@@ -20,7 +20,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
+            /* FJERNET height: 100% for at lade indholdet styre højden naturligt */
             background-color: #f8fafc; /* slate-50 */
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
@@ -120,18 +120,15 @@
             // --- NY KODE START: Sender automatisk højden til WordPress ---
             useEffect(() => {
                 const sendHeight = () => {
-                    // Måler max højden af dokumentet for at undgå manglende bunde på mobil
-                    const height = Math.max(
-                        document.body.scrollHeight, 
-                        document.documentElement.scrollHeight,
-                        document.body.offsetHeight,
-                        document.documentElement.offsetHeight
-                    );
-                    
-                    window.parent.postMessage({ 
-                        type: 'iframeResize', 
-                        height: height
-                    }, '*');
+                    const wrapper = document.getElementById('app-wrapper');
+                    if (wrapper) {
+                        // Måler KUN på selve indholds-containeren for at få en knivskarp måling
+                        const exactHeight = wrapper.scrollHeight;
+                        window.parent.postMessage({ 
+                            type: 'iframeResize', 
+                            height: exactHeight
+                        }, '*');
+                    }
                 };
 
                 // Kald den med det samme og når vinduet ændres
@@ -142,8 +139,8 @@
                 const observer = new MutationObserver(sendHeight);
                 observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
-                // Tving et tjek 2 gange i sekundet for Safari på iPhone
-                const interval = setInterval(sendHeight, 500);
+                // Tving et tjek ofte for Safari på iPhone og generel langsom rendering
+                const interval = setInterval(sendHeight, 250);
 
                 return () => {
                     window.removeEventListener('resize', sendHeight);
@@ -187,9 +184,9 @@
             const results = calculateEligibility();
             const validAge = parseInt(age) >= 18;
 
-            // UI Render
+            // UI Render - FJERNET "min-h-screen" for at undgå kunstig margin i bunden
             return (
-                <div id="app-wrapper" className="min-h-screen pb-12 bg-slate-50 w-full">
+                <div id="app-wrapper" className="pb-8 bg-slate-50 w-full">
                     {/* Header - Bruger den nye farve #27717d */}
                     <header className="bg-[#27717d] !text-white p-6 shadow-md">
                         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
