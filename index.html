@@ -19,7 +19,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     </style>
 </head>
-<body class="bg-slate-50">
+<body class="bg-slate-50 m-0 p-0">
 
     <!-- Her indsættes appen -->
     <div id="root"></div>
@@ -108,6 +108,35 @@
                 conditions.copdSevere || 
                 conditions.copdGeneral; 
 
+            // --- NY KODE START: Sender automatisk højden til WordPress ---
+            useEffect(() => {
+                const sendHeight = () => {
+                    // Måler præcist på appens indhold for at undgå mobil-scroll fejl
+                    const wrapper = document.getElementById('app-wrapper');
+                    if (wrapper) {
+                        window.parent.postMessage({ 
+                            type: 'iframeResize', 
+                            height: wrapper.scrollHeight
+                        }, '*');
+                    }
+                };
+
+                sendHeight();
+                window.addEventListener('resize', sendHeight);
+                
+                const observer = new MutationObserver(sendHeight);
+                observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+                const interval = setInterval(sendHeight, 500);
+
+                return () => {
+                    window.removeEventListener('resize', sendHeight);
+                    observer.disconnect();
+                    clearInterval(interval);
+                };
+            }, [conditions, showRules]); 
+            // --- NY KODE SLUT ---
+
             // Logic Calculation
             const calculateEligibility = () => {
                 
@@ -144,7 +173,7 @@
 
             // UI Render
             return (
-                <div className="min-h-screen pb-12">
+                <div id="app-wrapper" className="pb-12 bg-slate-50 w-full overflow-x-hidden">
                     {/* Header - Bruger den nye farve #27717d */}
                     <header className="bg-[#27717d] !text-white p-6 shadow-md">
                         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
