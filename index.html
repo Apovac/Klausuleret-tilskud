@@ -31,7 +31,7 @@
     <!-- Her indsættes appen -->
     <div id="root"></div>
     <!-- Her ligger selve React koden -->
-    <script type="text/babel">
+    <script type="text/babel" data-presets="react" data-plugins="transform-modules-umd">
         const { useState, useEffect } = React;
         // --- IKONER (Erstattet lucide-react med SVG for at virke direkte i browseren) ---
         const IconBase = ({ children, color = "currentColor", size = 24, className = "" }) => (
