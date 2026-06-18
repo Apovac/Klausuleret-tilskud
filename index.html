@@ -4,462 +4,583 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Klausuleret Tilskudstjekker</title>
-
-    <!-- 1. Hent Tailwind CSS (Design) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- 2. Hent React og ReactDOM (Motor) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-    <!-- 3. Hent Babel (Oversætter koden i browseren) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         html, body {
-            margin: 0;
-            padding: 0;
             width: 100%;
-            /* FJERNET height: 100% for at lade indholdet styre højden naturligt */
-            background-color: #f8fafc; /* slate-50 */
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 15px;
+            color: #334155;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-        /* Sikrer at der ikke opstår horisontal scroll */
-        #root { overflow-x: hidden; }
+
+        #app-wrapper { width: 100%; padding-bottom: 2rem; }
+
+        /* HEADER */
+        header {
+            background-color: #27717d;
+            color: #fff;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .header-brand { display: flex; align-items: center; gap: .75rem; }
+        .header-icon {
+            background: rgba(255,255,255,.15);
+            border-radius: .5rem;
+            padding: .5rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-title { font-size: 1.35rem; font-weight: 700; color: #fff; }
+        .header-sub { font-size: .8rem; color: rgba(255,255,255,.8); margin-top: .1rem; }
+
+        .age-box {
+            background: #1f5a64;
+            border-radius: .5rem;
+            padding: .5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #fff;
+            font-size: .875rem;
+            font-weight: 500;
+        }
+        .age-box input {
+            width: 5rem;
+            padding: .25rem .5rem;
+            border-radius: .35rem;
+            border: none;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+        .age-box input:focus { outline: 2px solid #27717d; }
+
+        /* MAIN */
+        main { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem; }
+
+        /* ALERTS */
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            padding: 1rem 1.25rem;
+            border-radius: .5rem;
+            margin-bottom: 1.25rem;
+            font-size: .9rem;
+        }
+        .alert-red  { background: #fef2f2; border-left: 4px solid #ef4444; color: #b91c1c; }
+        .alert-teal { background: rgba(39,113,125,.08); border-left: 4px solid #27717d; color: #27717d; text-align: center; justify-content: center; font-size: 1rem; font-weight: 500; }
+
+        /* GRID */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+        @media (min-width: 780px) {
+            .grid { grid-template-columns: 5fr 7fr; }
+        }
+
+        /* CARDS */
+        .card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding-bottom: .6rem;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: .75rem;
+        }
+        .card-title { font-size: .95rem; font-weight: 700; color: #1e293b; }
+        .card-meta { font-size: .7rem; color: #94a3b8; margin-left: auto; }
+
+        /* CONDITION ROWS */
+        .condition-row {
+            display: flex;
+            align-items: flex-start;
+            gap: .6rem;
+            padding: .4rem .5rem;
+            border-radius: .375rem;
+            cursor: pointer;
+            transition: background .15s;
+            user-select: none;
+        }
+        .condition-row:hover { background: #f8fafc; }
+        .condition-row.checked { background: rgba(39,113,125,.08); }
+        .condition-row input[type=checkbox] {
+            width: 1.1rem; height: 1.1rem;
+            accent-color: #27717d;
+            flex-shrink: 0;
+            margin-top: .15rem;
+            cursor: pointer;
+        }
+        .condition-label { font-size: .875rem; color: #475569; line-height: 1.4; }
+        .condition-label.highlight-checked { font-weight: 700; color: #27717d; }
+
+        /* RESULTS */
+        .results-header {
+            background: #1e293b;
+            color: #fff;
+            padding: .85rem 1rem;
+            border-radius: .75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .results-header-title { font-size: 1rem; font-weight: 600; color: #fff; }
+        .results-header-age { font-size: .8rem; color: rgba(255,255,255,.7); }
+
+        .section-label {
+            font-size: .7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            margin-bottom: .5rem;
+            margin-top: 1rem;
+        }
+        .section-label:first-child { margin-top: 0; }
+
+        .result-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: .85rem 1rem;
+            border-radius: .5rem;
+            border-left: 4px solid #cbd5e1;
+            background: #f8fafc;
+            box-shadow: 0 1px 2px rgba(0,0,0,.04);
+            margin-bottom: .5rem;
+            opacity: .6;
+            transition: opacity .2s, border-color .2s, background .2s;
+        }
+        .result-card.eligible {
+            background: #fff;
+            border-left-color: #22c55e;
+            opacity: 1;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        }
+        .result-card-body { flex: 1; }
+        .result-card-title { font-size: .925rem; font-weight: 700; color: #64748b; }
+        .result-card.eligible .result-card-title { color: #1e293b; }
+        .result-card-sub { font-size: .75rem; color: #94a3b8; margin-top: .1rem; }
+        .result-reason { font-size: .75rem; margin-top: .35rem; color: #94a3b8; }
+        .result-card.eligible .result-reason { color: #15803d; font-weight: 500; }
+
+        .result-actions {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-top: .6rem;
+            flex-wrap: wrap;
+        }
+        .link-laes {
+            font-size: .75rem;
+            color: #27717d;
+            text-decoration: underline;
+            display: inline-flex;
+            align-items: center;
+            gap: .2rem;
+        }
+        .link-laes:hover { color: #1f5a64; }
+        .btn-book {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            background: #27717d;
+            color: #fff;
+            text-decoration: none;
+            padding: .3rem .7rem;
+            border-radius: .375rem;
+            font-size: .75rem;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,.12);
+            transition: background .15s;
+        }
+        .btn-book:hover { background: #1f5a64; color: #fff; }
+
+        .result-icon { margin-left: .75rem; margin-top: .1rem; flex-shrink: 0; }
+
+        /* RULES TOGGLE */
+        .rules-toggle-wrap { margin-top: 2.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem; }
+        .btn-rules {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #27717d;
+            font-size: .9rem;
+            font-weight: 500;
+            padding: 0;
+        }
+        .btn-rules:hover { color: #1f5a64; }
+        .rules-box {
+            margin-top: 1rem;
+            background: #f1f5f9;
+            padding: 1.25rem 1.5rem;
+            border-radius: .75rem;
+            font-size: .85rem;
+            line-height: 1.7;
+            color: #475569;
+        }
+        .rules-box h3 { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
+        .rules-grid { display: grid; gap: 1.5rem; }
+        @media (min-width: 640px) { .rules-grid { grid-template-columns: 1fr 1fr; } }
+        .rules-box h4 { font-size: .875rem; font-weight: 700; color: #1e293b; margin-bottom: .4rem; margin-top: .8rem; }
+        .rules-box h4:first-child { margin-top: 0; }
+        .rules-box ul { list-style: disc; padding-left: 1.1rem; }
+        .rules-box ul li { margin-bottom: .25rem; }
+
+        .badge-kol {
+            background: #cffafe;
+            color: #0e7490;
+            font-size: .65rem;
+            font-weight: 700;
+            padding: .15rem .35rem;
+            border-radius: .25rem;
+        }
+
+        svg { flex-shrink: 0; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <!-- Her indsættes appen -->
-    <div id="root"></div>
-    <!-- Her ligger selve React koden -->
-    <script type="text/babel" data-presets="react" data-plugins="transform-modules-umd">
-        const { useState, useEffect } = React;
-        // --- IKONER (Erstattet lucide-react med SVG for at virke direkte i browseren) ---
-        const IconBase = ({ children, color = "currentColor", size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                {children}
-            </svg>
-        );
-        const Syringe = (props) => (
-            <IconBase {...props}><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></IconBase>
-        );
-        const AlertCircle = (props) => (
-            <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>
-        );
-        const CheckCircle = (props) => (
-            <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>
-        );
-        const XCircle = (props) => (
-            <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></IconBase>
-        );
-        const ShieldAlert = (props) => (
-            <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>
-        );
-        const HeartPulse = (props) => (
-            <IconBase {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></IconBase>
-        );
-        const Info = (props) => (
-            <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></IconBase>
-        );
-        // --- HOVED KOMPONENT ---
-        const App = () => {
-            // State
-            const [age, setAge] = useState('');
-            const [showRules, setShowRules] = useState(false);
-            const [conditions, setConditions] = useState({
-                splenectomy: false,
-                organTransplant: false,
-                stemCell: false,
-                cochlear: false,
-                csfLeak: false,
-                prevInvasive: false,
-                immunosuppression: false,
-                diabetes: false,
-                heartChronic: false,
-                lungChronic: false,
-                kidneyChronic: false,
-                liverChronic: false,
-                copdSevere: false,
-                copdGeneral: false,
-            });
-            // Opdateret farve: #27717d
-            const CARD_STYLE = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all duration-200";
+<div id="app-wrapper">
 
-            // Handler
-            const toggleCondition = (key) => {
-                setConditions(prev => ({ ...prev, [key]: !prev[key] }));
-            };
-            // Samlet KOL-toggle: aktiverer/deaktiverer alle KOL-relaterede flag samtidigt
-            const toggleKol = () => {
-                setConditions(prev => {
-                    const newValue = !prev.lungChronic;
-                    return {
-                        ...prev,
-                        lungChronic: newValue,
-                        copdGeneral: newValue,
-                        copdSevere: newValue
-                    };
-                });
-            };
-            // Logic definitions - Moved to outer scope so they are accessible in Render
-            const ageNum = parseInt(age) || 0;
-            const hasSevereImmuneCondition =
-                conditions.splenectomy ||
-                conditions.organTransplant ||
-                conditions.stemCell ||
-                conditions.cochlear ||
-                conditions.csfLeak ||
-                conditions.prevInvasive ||
-                conditions.immunosuppression;
-            const hasChronicDisease65PlusGroup =
-                conditions.diabetes ||
-                conditions.heartChronic ||
-                conditions.lungChronic ||
-                conditions.kidneyChronic ||
-                conditions.liverChronic ||
-                conditions.copdSevere ||
-                conditions.copdGeneral;
-            // --- NY KODE START: Sender automatisk højden til WordPress ---
-            useEffect(() => {
-                const sendHeight = () => {
-                    const wrapper = document.getElementById('app-wrapper');
-                    if (wrapper) {
-                        // Måler KUN på selve indholds-containeren for at få en knivskarp måling
-                        const exactHeight = wrapper.scrollHeight;
-                        window.parent.postMessage({
-                            type: 'iframeResize',
-                            height: exactHeight
-                        }, '*');
-                    }
-                };
-                // Kald den med det samme og når vinduet ændres
-                sendHeight();
-                window.addEventListener('resize', sendHeight);
-
-                // Lytter efter alle ændringer i DOM'en (når du krydser bokse af, osv.)
-                const observer = new MutationObserver(sendHeight);
-                observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-                // Tving et tjek ofte for Safari på iPhone og generel langsom rendering
-                const interval = setInterval(sendHeight, 250);
-                return () => {
-                    window.removeEventListener('resize', sendHeight);
-                    observer.disconnect();
-                    clearInterval(interval);
-                };
-            }, [conditions, showRules, age]);
-            // --- NY KODE SLUT ---
-            // Logic Calculation
-            const calculateEligibility = () => {
-
-                if (ageNum < 18) return null;
-                // 1. PCV20 & Capvaxive
-                const pcv20_capvaxive =
-                (ageNum >= 18 && hasSevereImmuneCondition) ||
-                (ageNum >= 65 && hasChronicDisease65PlusGroup);
-                // 2. PPV23
-                const ppv23 =
-                (ageNum >= 65) ||
-                (ageNum >= 18 && hasSevereImmuneCondition) ||
-                (ageNum >= 18 && conditions.copdSevere);
-                // 3. RS-Virus
-                const rsv = (ageNum >= 60 && (conditions.copdGeneral || conditions.copdSevere));
-                // 4. Helvedesild
-                const shingles = (ageNum >= 18 && conditions.immunosuppression);
-                return {
-                pcv20: pcv20_capvaxive,
-                capvaxive: pcv20_capvaxive,
-                ppv23: ppv23,
-                rsv: rsv,
-                shingrix: shingles
-                };
-            };
-            const results = calculateEligibility();
-            const validAge = parseInt(age) >= 18;
-            // UI Render - FJERNET "min-h-screen" for at undgå kunstig margin i bunden
-            return (
-                <div id="app-wrapper" className="pb-8 bg-slate-50 w-full">
-                    {/* Header - Bruger den nye farve #27717d */}
-                    <header className="bg-[#27717d] !text-white p-6 shadow-md">
-                        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-white/10 p-2 rounded-lg">
-                                <Syringe size={28} />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold !text-white !m-0 !p-0">Klausuleret Tilskudstjekker</h1>
-                                <p className="!text-white opacity-80 text-sm !m-0 !p-0">Hurtigt overblik over klausuleret tilskud (Kun 18+)</p>
-                            </div>
-                        </div>
-                        {/* Mørkere variant til input-feltet: #1f5a64 */}
-                        <div className="flex items-center bg-[#1f5a64] rounded-lg px-4 py-2">
-                            <span className="text-sm font-medium mr-2">Indtast Alder:</span>
-                            <input
-                            type="number"
-                            value={age}
-                            onChange={(e) => setAge(e.target.value)}
-                            placeholder="År"
-                            className="w-20 px-3 py-1 rounded text-slate-900 font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#27717d]"
-                            />
-                        </div>
-                        </div>
-                    </header>
-                    <main className="max-w-5xl mx-auto p-4 md:p-6">
-
-                        {/* Age Warning */}
-                        {age && parseInt(age) < 18 && (
-                        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
-                            <div className="flex items-center">
-                            <AlertCircle className="text-red-500 mr-3" />
-                            <p className="font-bold text-red-700">Bemærk: Denne guide dækker kun vaccination af personer over 18 år.</p>
-                            </div>
-                        </div>
-                        )}
-                        {!age && (
-                        <div className="bg-[#27717d]/10 border-l-4 border-[#27717d] p-6 mb-6 rounded shadow-sm text-center">
-                            <p className="text-[#27717d] font-medium text-lg">Start med at indtaste din alder øverst til højre for at se mulighederne.</p>
-                        </div>
-                        )}
-                        {validAge && (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                            {/* LEFT COLUMN: INPUTS */}
-                            <div className="lg:col-span-5 space-y-4">
-
-                            {/* Group 1: Severe Conditions */}
-                            <div className={CARD_STYLE}>
-                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                <ShieldAlert className="text-indigo-600" size={20} />
-                                <h3 className="font-bold text-slate-800 !m-0 !p-0">Svær Immunsvækkelse / Særlige Tilstande</h3>
-                                </div>
-                                <div className="space-y-3">
-                                <ConditionRow
-                                    label="Immunsuppression (pga. sygdom/behandling)"
-                                    checked={conditions.immunosuppression}
-                                    onChange={() => toggleCondition('immunosuppression')}
-                                    highlight
-                                />
-                                <ConditionRow label="Mangler milt / Splenektomi" checked={conditions.splenectomy} onChange={() => toggleCondition('splenectomy')} />
-                                <ConditionRow label="Organtransplantation" checked={conditions.organTransplant} onChange={() => toggleCondition('organTransplant')} />
-                                <ConditionRow label="Stamcelletransplantation" checked={conditions.stemCell} onChange={() => toggleCondition('stemCell')} />
-                                <ConditionRow label="Cochlear implantation" checked={conditions.cochlear} onChange={() => toggleCondition('cochlear')} />
-                                <ConditionRow label="Liquorlækage" checked={conditions.csfLeak} onChange={() => toggleCondition('csfLeak')} />
-                                <ConditionRow label="Tidligere invasiv pneumokoksygdom" checked={conditions.prevInvasive} onChange={() => toggleCondition('prevInvasive')} />
-                                </div>
-                            </div>
-                            {/* Group 2: Chronic Diseases */}
-                            <div className={CARD_STYLE}>
-                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                <HeartPulse className="text-rose-600" size={20} />
-                                <h3 className="font-bold text-slate-800 !m-0 !p-0">Kroniske Sygdomme</h3>
-                                <span className="text-xs text-slate-400 font-normal ml-auto">(Primært relevant for 65+)</span>
-                                </div>
-                                <div className="space-y-3">
-                                <ConditionRow label="Diabetes mellitus" checked={conditions.diabetes} onChange={() => toggleCondition('diabetes')} />
-                                <ConditionRow label="Kronisk hjertesygdom" checked={conditions.heartChronic} onChange={() => toggleCondition('heartChronic')} />
-                                <ConditionRow label="Kronisk nyresygdom" checked={conditions.kidneyChronic} onChange={() => toggleCondition('kidneyChronic')} />
-                                <ConditionRow label="Kronisk leversygdom" checked={conditions.liverChronic} onChange={() => toggleCondition('liverChronic')} />
-                                </div>
-                            </div>
-                            {/* Group 3: Lungs */}
-                            <div className={CARD_STYLE}>
-                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                <div className="p-1 bg-cyan-100 rounded text-cyan-700 font-bold text-xs">KOL</div>
-                                <h3 className="font-bold text-slate-800 !m-0 !p-0">Lungesygdomme</h3>
-                                </div>
-                                <div className="space-y-3">
-                                <ConditionRow
-                                    label="KOL (Kronisk Obstruktiv Lungesygdom)"
-                                    checked={conditions.lungChronic}
-                                    onChange={toggleKol}
-                                />
-                                </div>
-                            </div>
-                            </div>
-                            {/* RIGHT COLUMN: RESULTS */}
-                            <div className="lg:col-span-7 space-y-6">
-                            <div className="bg-slate-800 text-white p-4 rounded-xl flex justify-between items-center shadow-lg">
-                                <h2 className="text-lg font-semibold !text-white !m-0 !p-0">Status for Klausuleret Tilskud</h2>
-                                <div className="text-sm opacity-75 !text-white">Alder: {age} år</div>
-                            </div>
-                            <div className="grid gap-4">
-                                {/* PNEUMOKOKKER BLOCK */}
-                                <div className="space-y-2">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1 !m-0 !mb-2">Pneumokokker</h3>
-                                <ResultCard
-                                    title="20-valent"
-                                    subtitle="Konjugeret vaccine"
-                                    eligible={results.pcv20}
-                                    reason={results.pcv20
-                                    ? (parseInt(age) >= 65 && !hasSevereImmuneCondition ? "Godkendt pga. Alder 65+ OG Kronisk Sygdom" : "Godkendt pga. Særlig Risikogruppe")
-                                    : (parseInt(age) >= 65 ? "Mangler kronisk diagnose for tilskud" : "Ikke i målgruppen")
-                                    }
-                                />
-                                <ResultCard
-                                    title="21-valent"
-                                    subtitle="Konjugeret vaccine"
-                                    eligible={results.capvaxive}
-                                    reason={results.capvaxive
-                                    ? (parseInt(age) >= 65 && !hasSevereImmuneCondition ? "Godkendt pga. Alder 65+ OG Kronisk Sygdom" : "Godkendt pga. Særlig Risikogruppe")
-                                    : (parseInt(age) >= 65 ? "Mangler kronisk diagnose for tilskud" : "Ikke i målgruppen")
-                                    }
-                                />
-                                <ResultCard
-                                    title="23-valent - RESTORDE"
-                                    subtitle="Polysakkaridvaccine"
-                                    eligible={results.ppv23}
-                                    reason={results.ppv23
-                                    ? (parseInt(age) >= 65 ? "Godkendt pga. Alder 65+" : "Godkendt pga. Risikogruppe/KOL")
-                                    : "Ikke i målgruppen (Kræver 65+ eller særlig risiko)"
-                                    }
-                                />
-                                </div>
-                                {/* HELVEDESILD BLOCK */}
-                                <div className="space-y-2 mt-4">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1 !m-0 !mb-2">Helvedesild (Herpes Zoster)</h3>
-                                <ResultCard
-                                    title="Helvedesild"
-                                    subtitle="Inaktiveret rekombinant vaccine"
-                                    eligible={results.shingrix}
-                                    reason={results.shingrix
-                                    ? "Godkendt pga. Immunsuppression"
-                                    : "Ikke godkendt. Kræver immunsuppression."
-                                    }
-                                />
-                                </div>
-                                {/* RSV BLOCK */}
-                                <div className="space-y-2 mt-4">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1 !m-0 !mb-2">RS-Virus</h3>
-                                <ResultCard
-                                    title="RS-virus"
-                                    subtitle="RSV-vacciner"
-                                    eligible={results.rsv}
-                                    reason={results.rsv
-                                    ? "Godkendt pga. Alder 60+ og KOL"
-                                    : (parseInt(age) >= 60 ? "Mangler KOL diagnose" : "Kræver alder 60+")
-                                    }
-                                />
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-                        )}
-                        {/* TOGGLE RULES */}
-                        <div className="mt-12 border-t border-slate-200 pt-6">
-                        <button
-                            onClick={() => setShowRules(!showRules)}
-                            className="flex items-center text-[#27717d] hover:text-[#1f5a64] font-medium transition-colors"
-                        >
-                            <Info className="mr-2" size={20}/>
-                            {showRules ? "Skjul Regler (Tekstoverblik)" : "Vis Regler (Tekstoverblik)"}
-                        </button>
-                        {showRules && (
-                            <div className="mt-4 bg-slate-100 p-6 rounded-xl text-slate-700 text-sm leading-relaxed space-y-4">
-                            <h3 className="font-bold text-lg text-slate-900">Regler for Klausuleret Tilskud (Voksne 18+)</h3>
-
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div>
-                                <h4 className="font-bold text-slate-900 mb-2">Pneumokokker (Prevenar 20 & Capvaxive)</h4>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    <li><strong>Alle 18+:</strong> Splenektomi, Organtransplantation, Cochlear implant, Stamcelletransplant, Liquorlækage, Tidligere invasiv pneumokoksygdom, Immunsuppression.</li>
-                                    <li><strong>Personer 65+:</strong> Som ovenstående ELLER kronisk sygdom (Diabetes, Hjerte, Lunge, Nyre, Lever).</li>
-                                </ul>
-                                <h4 className="font-bold text-slate-900 mt-4 mb-2">Pneumokokker (Pneumovax - 23-valent)</h4>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    <li><strong>Alle 65+:</strong> Har automatisk ret til tilskud (alder alene).</li>
-                                    <li><strong>Under 65:</strong> Samme risikogrupper som Prevenar 20 + Personer med KOL.</li>
-                                </ul>
-                                </div>
-                                <div>
-                                <h4 className="font-bold text-slate-900 mb-2">Helvedesild (Shingrix)</h4>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    <li><strong>Alle 18+:</strong> Med immunsuppression (pga. sygdom eller behandling).</li>
-                                </ul>
-                                <h4 className="font-bold text-slate-900 mt-4 mb-2">RS-Virus (Arexvy & Abrysvo)</h4>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    <li><strong>Personer 60+:</strong> Som har KOL.</li>
-                                </ul>
-                                </div>
-                            </div>
-                            </div>
-                        )}
-                        </div>
-                    </main>
+    <header>
+        <div class="header-inner">
+            <div class="header-brand">
+                <div class="header-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/>
+                    </svg>
                 </div>
-            );
-        };
-        const ConditionRow = ({ label, subLabel, checked, onChange, highlight = false }) => (
-            <label
-                className={`flex items-start p-2 rounded cursor-pointer hover:bg-slate-50 transition-colors ${checked ? 'bg-[#27717d]/10' : ''}`}
-            >
-                <div className="mt-0.5 relative flex items-center">
-                <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={onChange}
-                    className="w-5 h-5 text-[#27717d] rounded border-slate-300 focus:ring-[#27717d] cursor-pointer"
-                />
-                </div>
-                <div className="ml-3">
-                <span className={`text-sm select-none ${highlight && checked ? 'font-bold text-[#27717d]' : 'text-slate-700'}`}>
-                    {label}
-                </span>
-                {subLabel && <p className="text-xs text-slate-400 mt-0.5">{subLabel}</p>}
-                </div>
-            </label>
-        );
-        const ResultCard = ({ title, subtitle, eligible, reason }) => (
-            <div className={`flex justify-between items-start p-4 rounded-lg border-l-4 shadow-sm transition-all ${eligible ? 'bg-white border-green-500' : 'bg-slate-50 border-slate-300 opacity-60'}`}>
-                <div className="flex-1">
-                <h4 className={`font-bold ${eligible ? 'text-slate-900' : 'text-slate-500'} !m-0 !p-0`}>{title}</h4>
-                <p className="text-xs text-slate-500 !m-0">{subtitle}</p>
-                {eligible && <p className="text-xs text-green-700 font-medium mt-1 !mb-0">{reason}</p>}
-                {!eligible && <p className="text-xs text-slate-400 mt-1 !mb-0">{reason}</p>}
-
-                <div className="flex items-center gap-4 mt-3">
-                    <a href="https://www.sst.dk/vidensbase/forebyggelse/vaccination/tilskud-til-vacciner-til-visse-persongrupper"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       className="inline-flex items-center text-xs text-[#27717d] hover:text-[#1f5a64] underline">
-                       Læs mere
-                       <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                       </svg>
-                    </a>
-                    {eligible && (
-                        <a href="https://medicals.app4.geckobooking.dk/site/index.php?icCode=038dfa5634ed32994ee62dc273ef2f26b9708&dTpl=1"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="inline-flex items-center bg-[#27717d] !text-white px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-[#1f5a64] transition-colors shadow-sm">
-                           Book tid
-                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1.5 w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                           </svg>
-                        </a>
-                    )}
-                </div>
-                </div>
-                <div className="ml-4 mt-1">
-                {eligible ? <CheckCircle className="text-green-500" size={28} /> : <XCircle className="text-slate-300" size={24} />}
+                <div>
+                    <div class="header-title">Klausuleret Tilskudstjekker</div>
+                    <div class="header-sub">Hurtigt overblik over klausuleret tilskud (Kun 18+)</div>
                 </div>
             </div>
-        );
-        // --- SIKKER INITIALISERING TIL ELEMENTOR ---
-        const initApp = () => {
-            const rootElement = document.getElementById('root');
-            // Tjek om React og ReactDOM er hentet, og om 'root' div'en eksisterer
-            if (rootElement && window.React && window.ReactDOM) {
-                const root = ReactDOM.createRoot(rootElement);
-                root.render(<App />);
-            } else {
-                // Hvis Elementor eller Cache-plugin driller, venter vi 100ms og prøver igen
-                setTimeout(initApp, 100);
-            }
-        };
-        // Start applikationen når alt er loadet
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
-    </script>
+            <div class="age-box">
+                <span>Indtast Alder:</span>
+                <input type="number" id="ageInput" placeholder="År" min="0" max="120" />
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="alertUnder18" class="alert alert-red hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:.1rem"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <p style="font-weight:700">Bemærk: Denne guide dækker kun vaccination af personer over 18 år.</p>
+        </div>
+
+        <div id="alertNoAge" class="alert alert-teal">
+            <p>Start med at indtaste din alder øverst til højre for at se mulighederne.</p>
+        </div>
+
+        <div id="mainContent" class="hidden">
+            <div class="grid">
+                <div>
+                    <div class="card" style="margin-bottom:1rem">
+                        <div class="card-header">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                            <span class="card-title">Svær Immunsvækkelse / Særlige Tilstande</span>
+                        </div>
+                        <div id="group-immune"></div>
+                    </div>
+
+                    <div class="card" style="margin-bottom:1rem">
+                        <div class="card-header">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
+                            <span class="card-title">Kroniske Sygdomme</span>
+                            <span class="card-meta">(Primært relevant for 65+)</span>
+                        </div>
+                        <div id="group-chronic"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="badge-kol">KOL</span>
+                            <span class="card-title">Lungesygdomme</span>
+                        </div>
+                        <div id="group-lung"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="results-header">
+                        <span class="results-header-title">Status for Klausuleret Tilskud</span>
+                        <span class="results-header-age" id="resultsAge">Alder: — år</span>
+                    </div>
+                    <div id="resultsContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rules-toggle-wrap">
+            <button class="btn-rules" id="rulesToggle" onclick="toggleRules()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+                <span id="rulesToggleText">Vis Regler (Tekstoverblik)</span>
+            </button>
+
+            <div id="rulesBox" class="rules-box hidden">
+                <h3>Regler for Klausuleret Tilskud (Voksne 18+)</h3>
+                <div class="rules-grid">
+                    <div>
+                        <h4>Pneumokokker (Prevenar 20 & Capvaxive)</h4>
+                        <ul>
+                            <li><strong>Alle 18+:</strong> Splenektomi, Organtransplantation, Cochlear implant, Stamcelletransplant, Liquorlækage, Tidligere invasiv pneumokoksygdom, Immunsuppression.</li>
+                            <li><strong>Personer 65+:</strong> Som ovenstående ELLER kronisk sygdom (Diabetes, Hjerte, Lunge, Nyre, Lever).</li>
+                        </ul>
+                        <h4>Pneumokokker (Pneumovax - 23-valent)</h4>
+                        <ul>
+                            <li><strong>Alle 65+:</strong> Har automatisk ret til tilskud (alder alene).</li>
+                            <li><strong>Under 65:</strong> Samme risikogrupper som Prevenar 20 + Personer med KOL.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Helvedesild (Shingrix)</h4>
+                        <ul>
+                            <li><strong>Alle 18+:</strong> Med immunsuppression (pga. sygdom eller behandling).</li>
+                        </ul>
+                        <h4>RS-Virus (Arexvy & Abrysvo)</h4>
+                        <ul>
+                            <li><strong>Personer 60+:</strong> Som har KOL.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+var state = {
+    age: '',
+    showRules: false,
+    conditions: {
+        immunosuppression: false,
+        splenectomy:       false,
+        organTransplant:   false,
+        stemCell:          false,
+        cochlear:          false,
+        csfLeak:           false,
+        prevInvasive:      false,
+        diabetes:          false,
+        heartChronic:      false,
+        kidneyChronic:     false,
+        liverChronic:      false,
+        lungChronic:       false
+    }
+};
+
+var immuneConditions = [
+    { key: 'immunosuppression', label: 'Immunsuppression (pga. sygdom/behandling)', highlight: true },
+    { key: 'splenectomy',       label: 'Mangler milt / Splenektomi' },
+    { key: 'organTransplant',   label: 'Organtransplantation' },
+    { key: 'stemCell',          label: 'Stamcelletransplantation' },
+    { key: 'cochlear',          label: 'Cochlear implantation' },
+    { key: 'csfLeak',           label: 'Liquorlækage' },
+    { key: 'prevInvasive',      label: 'Tidligere invasiv pneumokoksygdom' }
+];
+
+var chronicConditions = [
+    { key: 'diabetes',      label: 'Diabetes mellitus' },
+    { key: 'heartChronic',  label: 'Kronisk hjertesygdom' },
+    { key: 'kidneyChronic', label: 'Kronisk nyresygdom' },
+    { key: 'liverChronic',  label: 'Kronisk leversygdom' }
+];
+
+function buildCheckboxGroup(containerId, items) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = '';
+    items.forEach(function(item) {
+        var row = document.createElement('label');
+        row.className = 'condition-row' + (state.conditions[item.key] ? ' checked' : '');
+
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = state.conditions[item.key];
+        cb.addEventListener('change', (function(k) {
+            return function() { toggleCondition(k); };
+        })(item.key));
+
+        var span = document.createElement('span');
+        span.className = 'condition-label' + (item.highlight && state.conditions[item.key] ? ' highlight-checked' : '');
+        span.textContent = item.label;
+
+        row.appendChild(cb);
+        row.appendChild(span);
+        container.appendChild(row);
+    });
+}
+
+function buildLungGroup() {
+    var container = document.getElementById('group-lung');
+    container.innerHTML = '';
+    var row = document.createElement('label');
+    row.className = 'condition-row' + (state.conditions.lungChronic ? ' checked' : '');
+
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = state.conditions.lungChronic;
+    cb.addEventListener('change', function() { toggleKol(); });
+
+    var span = document.createElement('span');
+    span.className = 'condition-label';
+    span.textContent = 'KOL (Kronisk Obstruktiv Lungesygdom)';
+
+    row.appendChild(cb);
+    row.appendChild(span);
+    container.appendChild(row);
+}
+
+function toggleCondition(key) {
+    state.conditions[key] = !state.conditions[key];
+    render();
+}
+
+function toggleKol() {
+    state.conditions.lungChronic = !state.conditions.lungChronic;
+    render();
+}
+
+function toggleRules() {
+    state.showRules = !state.showRules;
+    document.getElementById('rulesBox').classList.toggle('hidden', !state.showRules);
+    document.getElementById('rulesToggleText').textContent =
+        state.showRules ? 'Skjul Regler (Tekstoverblik)' : 'Vis Regler (Tekstoverblik)';
+    sendHeight();
+}
+
+function calculate() {
+    var age = parseInt(state.age) || 0;
+    var c = state.conditions;
+    var hasSevereImmune = c.splenectomy || c.organTransplant || c.stemCell || c.cochlear || c.csfLeak || c.prevInvasive || c.immunosuppression;
+    var hasChronicDisease = c.diabetes || c.heartChronic || c.lungChronic || c.kidneyChronic || c.liverChronic;
+    return {
+        age: age,
+        hasSevereImmune: hasSevereImmune,
+        hasChronicDisease: hasChronicDisease,
+        pcv:     (age >= 18 && hasSevereImmune) || (age >= 65 && hasChronicDisease),
+        ppv:     (age >= 65) || (age >= 18 && hasSevereImmune) || (age >= 18 && c.lungChronic),
+        rsv:     age >= 60 && c.lungChronic,
+        shingrix: age >= 18 && c.immunosuppression
+    };
+}
+
+function iconCheck() {
+    return '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+}
+function iconX() {
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>';
+}
+function iconExternal() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>';
+}
+function iconCalendar() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+}
+
+function resultCardHTML(title, subtitle, eligible, reason) {
+    var actions = '<div class="result-actions">'
+        + '<a href="https://www.sst.dk/vidensbase/forebyggelse/vaccination/tilskud-til-vacciner-til-visse-persongrupper" target="_blank" rel="noopener noreferrer" class="link-laes">Læs mere ' + iconExternal() + '</a>';
+    if (eligible) {
+        actions += '<a href="https://medicals.app4.geckobooking.dk/site/index.php?icCode=038dfa5634ed32994ee62dc273ef2f26b9708&dTpl=1" target="_blank" rel="noopener noreferrer" class="btn-book">Book tid ' + iconCalendar() + '</a>';
+    }
+    actions += '</div>';
+    return '<div class="result-card' + (eligible ? ' eligible' : '') + '">'
+        + '<div class="result-card-body">'
+        + '<div class="result-card-title">' + title + '</div>'
+        + '<div class="result-card-sub">' + subtitle + '</div>'
+        + '<div class="result-reason">' + reason + '</div>'
+        + actions
+        + '</div>'
+        + '<div class="result-icon">' + (eligible ? iconCheck() : iconX()) + '</div>'
+        + '</div>';
+}
+
+function renderResults(r) {
+    var age = r.age;
+    var html = '';
+
+    html += '<div class="section-label">Pneumokokker</div>';
+    var pcvReason = r.pcv
+        ? (age >= 65 && !r.hasSevereImmune ? 'Godkendt pga. Alder 65+ OG Kronisk Sygdom' : 'Godkendt pga. Særlig Risikogruppe')
+        : (age >= 65 ? 'Mangler kronisk diagnose for tilskud' : 'Ikke i målgruppen');
+    html += resultCardHTML('20-valent', 'Konjugeret vaccine', r.pcv, pcvReason);
+    html += resultCardHTML('21-valent', 'Konjugeret vaccine', r.pcv, pcvReason);
+    var ppvReason = r.ppv
+        ? (age >= 65 ? 'Godkendt pga. Alder 65+' : 'Godkendt pga. Risikogruppe/KOL')
+        : 'Ikke i målgruppen (Kræver 65+ eller særlig risiko)';
+    html += resultCardHTML('23-valent - RESTORDE', 'Polysakkaridvaccine', r.ppv, ppvReason);
+
+    html += '<div class="section-label" style="margin-top:1.25rem">Helvedesild (Herpes Zoster)</div>';
+    var shingReason = r.shingrix ? 'Godkendt pga. Immunsuppression' : 'Ikke godkendt. Kræver immunsuppression.';
+    html += resultCardHTML('Helvedesild', 'Inaktiveret rekombinant vaccine', r.shingrix, shingReason);
+
+    html += '<div class="section-label" style="margin-top:1.25rem">RS-Virus</div>';
+    var rsvReason = r.rsv ? 'Godkendt pga. Alder 60+ og KOL' : (age >= 60 ? 'Mangler KOL diagnose' : 'Kræver alder 60+');
+    html += resultCardHTML('RS-virus', 'RSV-vacciner', r.rsv, rsvReason);
+
+    document.getElementById('resultsContainer').innerHTML = html;
+    document.getElementById('resultsAge').textContent = 'Alder: ' + age + ' år';
+}
+
+function render() {
+    var age = parseInt(state.age);
+    var hasAge = state.age !== '' && !isNaN(age);
+    var validAge = hasAge && age >= 18;
+
+    document.getElementById('alertUnder18').classList.toggle('hidden', !(hasAge && age < 18));
+    document.getElementById('alertNoAge').classList.toggle('hidden', hasAge);
+    document.getElementById('mainContent').classList.toggle('hidden', !validAge);
+
+    if (validAge) {
+        buildCheckboxGroup('group-immune', immuneConditions);
+        buildCheckboxGroup('group-chronic', chronicConditions);
+        buildLungGroup();
+        renderResults(calculate());
+    }
+
+    sendHeight();
+}
+
+function sendHeight() {
+    var wrapper = document.getElementById('app-wrapper');
+    if (wrapper) {
+        window.parent.postMessage({ type: 'iframeResize', height: wrapper.scrollHeight }, '*');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('ageInput').addEventListener('input', function(e) {
+        state.age = e.target.value;
+        render();
+    });
+    render();
+    if (window.ResizeObserver) {
+        new ResizeObserver(function() { sendHeight(); }).observe(document.getElementById('app-wrapper'));
+    }
+    window.addEventListener('resize', sendHeight);
+    setInterval(sendHeight, 500);
+});
+</script>
 </body>
 </html>
