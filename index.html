@@ -529,7 +529,7 @@ function renderResults(r) {
     var ppvReason = r.ppv
         ? (age >= 65 ? 'Godkendt pga. Alder 65+' : 'Godkendt pga. Risikogruppe/KOL')
         : 'Ikke i målgruppen (Kræver 65+ eller særlig risiko)';
-    html += resultCardHTML('23-valent - RESTORDE', 'Polysakkaridvaccine', r.ppv, ppvReason);
+    html += resultCardHTML('23-valent', 'Polysakkaridvaccine', r.ppv, ppvReason);
 
     html += '<div class="section-label" style="margin-top:1.25rem">Helvedesild (Herpes Zoster)</div>';
     var shingReason = r.shingrix ? 'Godkendt pga. Immunsuppression' : 'Ikke godkendt. Kræver immunsuppression.';
