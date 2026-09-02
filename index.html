@@ -343,7 +343,7 @@
                 <h3>Regler for Klausuleret Tilskud (Voksne 18+)</h3>
                 <div class="rules-grid">
                     <div>
-                        <h4>Pneumokokker (Prevenar 20 & Capvaxive)</h4>
+                        <h4>Pneumokokker (Prevenar 20 &amp; Capvaxive)</h4>
                         <ul>
                             <li><strong>Alle 18+:</strong> Splenektomi, Organtransplantation, Cochlear implant, Stamcelletransplant, Liquorlækage, Tidligere invasiv pneumokoksygdom, Immunsuppression.</li>
                             <li><strong>Personer 65+:</strong> Som ovenstående ELLER kronisk sygdom (Diabetes, Hjerte, Lunge, Nyre, Lever).</li>
@@ -359,7 +359,7 @@
                         <ul>
                             <li><strong>Alle 18+:</strong> Med immunsuppression (pga. sygdom eller behandling).</li>
                         </ul>
-                        <h4>RS-Virus (Arexvy & Abrysvo)</h4>
+                        <h4>RS-Virus (Arexvy &amp; Abrysvo)</h4>
                         <ul>
                             <li><strong>Personer 60+:</strong> Som har KOL.</li>
                         </ul>
@@ -386,6 +386,7 @@ var state = {
         heartChronic:      false,
         kidneyChronic:     false,
         liverChronic:      false,
+        lungDisease:       false,
         lungChronic:       false
     }
 };
@@ -403,6 +404,7 @@ var immuneConditions = [
 var chronicConditions = [
     { key: 'diabetes',      label: 'Diabetes mellitus' },
     { key: 'heartChronic',  label: 'Kronisk hjertesygdom' },
+    { key: 'lungDisease',   label: 'Kronisk lungesygdom' },
     { key: 'kidneyChronic', label: 'Kronisk nyresygdom' },
     { key: 'liverChronic',  label: 'Kronisk leversygdom' }
 ];
@@ -473,7 +475,7 @@ function calculate() {
     var age = parseInt(state.age) || 0;
     var c = state.conditions;
     var hasSevereImmune = c.splenectomy || c.organTransplant || c.stemCell || c.cochlear || c.csfLeak || c.prevInvasive || c.immunosuppression;
-    var hasChronicDisease = c.diabetes || c.heartChronic || c.lungChronic || c.kidneyChronic || c.liverChronic;
+    var hasChronicDisease = c.diabetes || c.heartChronic || c.lungDisease || c.lungChronic || c.kidneyChronic || c.liverChronic;
     return {
         age: age,
         hasSevereImmune: hasSevereImmune,
