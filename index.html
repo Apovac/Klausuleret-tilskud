@@ -348,11 +348,6 @@
                             <li><strong>Alle 18+:</strong> Splenektomi, Organtransplantation, Cochlear implant, Stamcelletransplant, Liquorlækage, Tidligere invasiv pneumokoksygdom, Immunsuppression.</li>
                             <li><strong>Personer 65+:</strong> Som ovenstående ELLER kronisk sygdom (Diabetes, Hjerte, Lunge, Nyre, Lever).</li>
                         </ul>
-                        <h4>Pneumokokker (Pneumovax - 23-valent)</h4>
-                        <ul>
-                            <li><strong>Alle 65+:</strong> Har automatisk ret til tilskud (alder alene).</li>
-                            <li><strong>Under 65:</strong> Samme risikogrupper som Prevenar 20 + Personer med KOL.</li>
-                        </ul>
                     </div>
                     <div>
                         <h4>Helvedesild (Shingrix)</h4>
@@ -481,7 +476,6 @@ function calculate() {
         hasSevereImmune: hasSevereImmune,
         hasChronicDisease: hasChronicDisease,
         pcv:     (age >= 18 && hasSevereImmune) || (age >= 65 && hasChronicDisease),
-        ppv:     (age >= 65) || (age >= 18 && hasSevereImmune) || (age >= 18 && c.lungChronic),
         rsv:     age >= 60 && c.lungChronic,
         shingrix: age >= 18 && c.immunosuppression
     };
@@ -528,10 +522,6 @@ function renderResults(r) {
         : (age >= 65 ? 'Mangler kronisk diagnose for tilskud' : 'Ikke i målgruppen');
     html += resultCardHTML('20-valent', 'Konjugeret vaccine', r.pcv, pcvReason);
     html += resultCardHTML('21-valent', 'Konjugeret vaccine', r.pcv, pcvReason);
-    var ppvReason = r.ppv
-        ? (age >= 65 ? 'Godkendt pga. Alder 65+' : 'Godkendt pga. Risikogruppe/KOL')
-        : 'Ikke i målgruppen (Kræver 65+ eller særlig risiko)';
-    html += resultCardHTML('23-valent', 'Polysakkaridvaccine', r.ppv, ppvReason);
 
     html += '<div class="section-label" style="margin-top:1.25rem">Helvedesild (Herpes Zoster)</div>';
     var shingReason = r.shingrix ? 'Godkendt pga. Immunsuppression' : 'Ikke godkendt. Kræver immunsuppression.';
