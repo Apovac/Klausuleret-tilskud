@@ -129,6 +129,9 @@
         }
         .condition-label { font-size: .875rem; color: #475569; line-height: 1.4; }
         .condition-label.highlight-checked { font-weight: 700; color: #27717d; }
+        .condition-sublabel { font-size: .75rem; color: #94a3b8; margin-top: .15rem; line-height: 1.35; }
+        .condition-sublabel.warning { color: #b45309; }
+        .condition-row.checked .condition-sublabel.warning { color: #92400e; font-weight: 500; }
 
         /* RESULTS */
         .results-header {
@@ -398,7 +401,7 @@ var immuneConditions = [
 
 var chronicConditions = [
     { key: 'diabetes',      label: 'Diabetes mellitus' },
-    { key: 'heartChronic',  label: 'Kronisk hjertesygdom' },
+    { key: 'heartChronic',  label: 'Kronisk hjertesygdom', subLabel: 'Gælder ikke hvis du udelukkende behandles for forhøjet blodtryk', subWarning: true },
     { key: 'lungDisease',   label: 'Kronisk lungesygdom' },
     { key: 'kidneyChronic', label: 'Kronisk nyresygdom' },
     { key: 'liverChronic',  label: 'Kronisk leversygdom' }
@@ -418,12 +421,22 @@ function buildCheckboxGroup(containerId, items) {
             return function() { toggleCondition(k); };
         })(item.key));
 
+        var textWrap = document.createElement('div');
+
         var span = document.createElement('span');
         span.className = 'condition-label' + (item.highlight && state.conditions[item.key] ? ' highlight-checked' : '');
         span.textContent = item.label;
+        textWrap.appendChild(span);
+
+        if (item.subLabel) {
+            var sub = document.createElement('div');
+            sub.className = 'condition-sublabel' + (item.subWarning ? ' warning' : '');
+            sub.textContent = item.subLabel;
+            textWrap.appendChild(sub);
+        }
 
         row.appendChild(cb);
-        row.appendChild(span);
+        row.appendChild(textWrap);
         container.appendChild(row);
     });
 }
@@ -475,8 +488,8 @@ function calculate() {
         age: age,
         hasSevereImmune: hasSevereImmune,
         hasChronicDisease: hasChronicDisease,
-        pcv:     (age >= 18 && hasSevereImmune) || (age >= 65 && hasChronicDisease),
-        rsv:     age >= 60 && c.lungChronic,
+        pcv:      (age >= 18 && hasSevereImmune) || (age >= 65 && hasChronicDisease),
+        rsv:      age >= 60 && c.lungChronic,
         shingrix: age >= 18 && c.immunosuppression
     };
 }
