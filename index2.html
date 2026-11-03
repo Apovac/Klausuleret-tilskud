@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klausuleret Tilskudstjekker</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%;
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 15px;
+            color: #334155;
+        }
+
+        /* Fylder hele skærmbredden, også når siden ligger i en smallere container på hjemmesiden */
+        html, body { overflow-x: hidden; }
+        #app-wrapper {
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            background-color: #f8fafc;
+            padding-bottom: 2rem;
+        }
+
+        /* HEADER */
+        header {
+            background-color: #27717d;
+            color: #fff;
+            padding: 2.25rem 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .header-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .75rem;
+            text-align: left;
+        }
+        .header-icon {
+            background: rgba(255,255,255,.15);
+            border-radius: .75rem;
+            padding: .75rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-title { font-size: 2.25rem; font-weight: 700; color: #fff; line-height: 1.2; }
+        .header-sub { font-size: 1.2rem; color: rgba(255,255,255,.9); margin-top: .35rem; }
+        @media (max-width: 600px) {
+            .header-title { font-size: 1.6rem; }
+            .header-sub { font-size: 1rem; }
+        }
+
+        /* MAIN */
+        main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        /* STEPS */
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .875rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .step-pill .num {
+            width: 1.8rem; height: 1.8rem;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .9rem;
+        }
+        .step-pill.active { color: #27717d; }
+        .step-pill.active .num { background: #27717d; color: #fff; }
+        .step-pill.done .num { background: #bfe0e4; color: #1f5a64; }
+        .step-sep { width: 1.5rem; height: 2px; background: #e2e8f0; align-self: center; }
+
+        /* PANELS */
+        .panel {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+            text-align: center;
+            max-width: 620px;
+            margin: 0 auto;
+        }
+        .panel h2 { font-size: 1.35rem; color: #1e293b; margin-bottom: .5rem; }
+        .panel .lead { font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; }
+
+        .age-row {
+            position: relative;
+            display: inline-block;
+        }
+        .age-input {
+            width: 8rem;
+            padding: .6rem .75rem;
+            border-radius: .75rem;
+            border: 3px solid #27717d;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #1e293b;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .age-input::-webkit-outer-spin-button,
+        .age-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .age-input:focus { outline: 4px solid rgba(39,113,125,.25); }
+        .age-unit { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: .6rem; font-size: 1.1rem; font-weight: 600; color: #475569; }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            background: #27717d;
+            color: #fff;
+            border: none;
+            border-radius: .75rem;
+            padding: .8rem 1.75rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            min-width: 12rem;
+        }
+        .btn-primary:hover { background: #1f5a64; }
+        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            background: #fff;
+            border: 2px solid #cbd5e1;
+            border-radius: .6rem;
+            padding: .45rem .85rem;
+            font-size: .875rem;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+        }
+        .btn-back:hover { border-color: #27717d; color: #27717d; }
+
+        /* ALERTS */
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            padding: 1rem 1.25rem;
+            border-radius: .5rem;
+            margin-top: 1.25rem;
+            font-size: 1rem;
+            text-align: left;
+        }
+        .alert-red { background: #fef2f2; border-left: 4px solid #ef4444; color: #b91c1c; }
+
+        /* VACCINE CHOICE */
+        .vaccine-list { display: grid; gap: 1rem; text-align: left; }
+        .vaccine-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            background: #fff;
+            border: 3px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.25rem 1.25rem;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: border-color .15s, background .15s;
+        }
+        .vaccine-btn:hover, .vaccine-btn:focus { border-color: #27717d; background: rgba(39,113,125,.05); outline: none; }
+        .vaccine-btn .v-icon {
+            width: 3.2rem; height: 3.2rem;
+            border-radius: .75rem;
+            background: rgba(39,113,125,.1);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .vaccine-btn .v-name { font-size: 1rem; font-weight: 700; color: #1e293b; }
+        .vaccine-btn .v-desc { font-size: .875rem; color: #64748b; margin-top: .15rem; }
+        .vaccine-btn .v-arrow { margin-left: auto; color: #27717d; }
+        .link-all {
+            display: inline-block;
+            margin-top: 1.25rem;
+            background: none;
+            border: none;
+            color: #27717d;
+            font-size: 1rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* CHECK STEP */
+        .check-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .notice {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #f59e0b;
+            border-radius: .75rem;
+            padding: 1.25rem 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        .notice-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: .35rem; }
+        .notice p { font-size: .875rem; color: #64748b; margin-bottom: 1rem; }
+        .check-nav {
+            display: flex;
+            justify-content: flex-start;
+            gap: .75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .check-summary { font-size: .875rem; color: #475569; }
+        .check-summary strong { color: #1e293b; }
+                
+        .card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+            margin-bottom: .75rem;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap;
+            padding-bottom: .6rem;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: .5rem;
+        }
+        .card-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
+        .card-meta { font-size: .875rem; color: #b45309; font-weight: 600; }
+
+        /* CONDITION ROWS */
+        .condition-row {
+            display: flex;
+            align-items: flex-start;
+            gap: .85rem;
+            padding: .55rem .5rem;
+            border-radius: .5rem;
+            cursor: pointer;
+            transition: background .15s;
+            user-select: none;
+        }
+        .condition-row + .condition-row { border-top: 1px solid #f1f5f9; }
+        .condition-row:hover { background: #f8fafc; }
+        .condition-row.checked { background: rgba(39,113,125,.1); }
+        .condition-row input[type=checkbox] {
+            width: 1.3rem; height: 1.3rem;
+            accent-color: #27717d;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .condition-label { font-size: 1rem; color: #334155; line-height: 1.4; }
+        .condition-row.checked .condition-label { font-weight: 700; color: #1f5a64; }
+        .condition-sublabel { font-size: .875rem; color: #94a3b8; margin-top: .2rem; line-height: 1.35; }
+        .condition-sublabel.warning { color: #b45309; }
+
+        /* RESULTS */
+        .col-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.4;
+            margin-bottom: .75rem;
+        }
+        .check-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 780px) {
+            .check-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+            .check-grid .results-col { position: sticky; top: 1rem; }
+        }
+        .section-label {
+            font-size: .8rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            margin-bottom: .5rem;
+            margin-top: 1.25rem;
+        }
+        .section-label:first-child { margin-top: 0; }
+
+        .result-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem 1.1rem;
+            border-radius: .75rem;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+            margin-bottom: .75rem;
+            transition: border-color .2s, background .2s;
+        }
+        .result-card.eligible {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+        .result-card-body { flex: 1; }
+        .result-card-title { font-size: 1rem; font-weight: 700; color: #475569; }
+        .result-card.eligible .result-card-title { color: #1e293b; }
+        .result-card-sub { font-size: .875rem; color: #94a3b8; margin-top: .1rem; }
+        .result-reason { font-size: .875rem; margin-top: .5rem; color: #64748b; font-weight: 600; }
+        .result-card.eligible .result-reason { color: #15803d; }
+
+        .result-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: .85rem;
+            flex-wrap: wrap;
+        }
+        .link-laes {
+            font-size: .875rem;
+            color: #27717d;
+            text-decoration: underline;
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+        }
+        .link-laes:hover { color: #1f5a64; }
+        .btn-book {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            background: #27717d;
+            color: #fff;
+            text-decoration: none;
+            padding: .55rem 1.1rem;
+            border-radius: .5rem;
+            font-size: .875rem;
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0,0,0,.12);
+            transition: background .15s;
+        }
+        .btn-book:hover { background: #1f5a64; color: #fff; }
+
+        .result-icon { margin-left: .75rem; margin-top: .1rem; flex-shrink: 0; }
+
+        /* RULES TOGGLE */
+        .rules-toggle-wrap { margin-top: 2.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem; }
+        .btn-rules {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #27717d;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0;
+        }
+        .btn-rules:hover { color: #1f5a64; }
+        .rules-box {
+            margin-top: 1rem;
+            background: #f1f5f9;
+            padding: 1.25rem 1.5rem;
+            border-radius: .75rem;
+            font-size: .95rem;
+            line-height: 1.7;
+            color: #475569;
+        }
+        .rules-box h3 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
+        .rules-grid { display: grid; gap: 1.5rem; }
+        @media (min-width: 640px) { .rules-grid { grid-template-columns: 1fr 1fr; } }
+        .rules-box h4 { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: .4rem; margin-top: .8rem; }
+        .rules-box h4:first-child { margin-top: 0; }
+        .rules-box ul { list-style: disc; padding-left: 1.1rem; }
+        .rules-box ul li { margin-bottom: .25rem; }
+
+        svg { flex-shrink: 0; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+<div id="app-wrapper">
+
+    <header>
+        <div class="header-inner">
+            <div class="header-icon">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/>
+                </svg>
+            </div>
+            <div>
+                <div class="header-title">Klausuleret Tilskudstjekker</div>
+                <div class="header-sub">Se om du kan få tilskud til din vaccine (Kun 18+)</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="steps" id="steps"></div>
+
+        <!-- TRIN 1: ALDER -->
+        <section id="stepAge" class="panel">
+            <h2>Hvor gammel er du?</h2>
+            <p class="lead">Skriv din alder i feltet herunder.</p>
+            <div class="age-row">
+                <input type="number" id="ageInput" class="age-input" placeholder="År" min="0" max="120" inputmode="numeric" aria-label="Alder i år" />
+                <span class="age-unit">år</span>
+            </div>
+            <div id="alertUnder18" class="alert alert-red hidden">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:.1rem"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                <p style="font-weight:700">Bemærk: Denne guide dækker kun vaccination af personer over 18 år.</p>
+            </div>
+            <div>
+                <button class="btn-primary" id="btnAgeNext" disabled>
+                    Næste
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- TRIN 2: VACCINE -->
+        <section id="stepVaccine" class="panel hidden">
+            <h2>Hvilken vaccine ønsker du?</h2>
+            <p class="lead">Tryk på den vaccine, du vil tjekke.</p>
+            <div class="vaccine-list" id="vaccineList"></div>
+            <button class="link-all" onclick="chooseVaccine('all')">Jeg er i tvivl - vis alle vacciner</button>
+            <div style="margin-top:1.5rem">
+                <button class="btn-back" onclick="goTo('age')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    Tilbage
+                </button>
+            </div>
+        </section>
+
+        <!-- TRIN 3: TJEK -->
+        <section id="stepCheck" class="hidden">
+            <div class="check-top">
+                <div class="check-summary" id="checkSummary"></div>
+            </div>
+
+            <div id="rsvUnder60" class="notice hidden">
+                <div class="notice-title">Der gives ikke tilskud til RS-virus-vaccine under 60 år</div>
+                <p>Tilskud til RS-virus-vaccine gælder kun for personer på 60 år eller derover, som har KOL.</p>
+                <button class="btn-back" onclick="chooseVaccine('all')">Se alle vacciner</button>
+            </div>
+
+            <div class="check-grid" id="checkGrid">
+                <div>
+                    <div class="col-title">Sæt kryds ved det, der passer på dig</div>
+                    <div id="conditionGroups"></div>
+                </div>
+                <div class="results-col">
+                    <div class="col-title">Dit resultat</div>
+                    <div id="resultsContainer"></div>
+                    <button class="btn-back" id="btnShowAll" onclick="chooseVaccine('all')">Se alle vacciner</button>
+                </div>
+            </div>
+
+            <div class="check-nav">
+                <button class="btn-back" onclick="goTo('vaccine')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    Tilbage
+                </button>
+            </div>
+        </section>
+
+        <div class="rules-toggle-wrap">
+            <button class="btn-rules" id="rulesToggle" onclick="toggleRules()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+                <span id="rulesToggleText">Vis Regler (Tekstoverblik)</span>
+            </button>
+
+            <div id="rulesBox" class="rules-box hidden">
+                <h3>Regler for Klausuleret Tilskud (Voksne 18+)</h3>
+                <div class="rules-grid">
+                    <div>
+                        <h4>Pneumokokker: 20-valent og 21-valent</h4>
+                        <ul>
+                            <li><strong>Alle 18+:</strong> Splenektomi, Organtransplantation, Cochlear implant, Stamcelletransplant, Liquorlækage, Tidligere invasiv pneumokoksygdom, Immunsuppression.</li>
+                            <li><strong>Personer 65+:</strong> Som ovenstående ELLER kronisk sygdom (Diabetes, Hjerte, Lunge, Nyre, Lever).</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Helvedesild</h4>
+                        <ul>
+                            <li><strong>Alle 18+:</strong> Med immunsuppression (pga. sygdom eller behandling).</li>
+                        </ul>
+                        <h4>RS-virus</h4>
+                        <ul>
+                            <li><strong>Personer 60+:</strong> Som har KOL.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+var state = {
+    age: '',
+    step: 'age',
+    vaccine: null,
+    showRules: false,
+    conditions: {
+        immunosuppression: false,
+        splenectomy:       false,
+        organTransplant:   false,
+        stemCell:          false,
+        cochlear:          false,
+        csfLeak:           false,
+        prevInvasive:      false,
+        diabetes:          false,
+        heartChronic:      false,
+        kidneyChronic:     false,
+        liverChronic:      false,
+        lungDisease:       false,
+        lungChronic:       false
+    }
+};
+
+var immuneConditions = [
+    { key: 'immunosuppression', label: 'Immunsuppression (pga. sygdom/behandling)' },
+    { key: 'splenectomy',       label: 'Mangler milt / Splenektomi' },
+    { key: 'organTransplant',   label: 'Organtransplantation' },
+    { key: 'stemCell',          label: 'Stamcelletransplantation' },
+    { key: 'cochlear',          label: 'Cochlear implantation' },
+    { key: 'csfLeak',           label: 'Liquorlækage' },
+    { key: 'prevInvasive',      label: 'Tidligere invasiv pneumokoksygdom' }
+];
+
+var chronicConditions = [
+    { key: 'diabetes',      label: 'Diabetes mellitus' },
+    { key: 'heartChronic',  label: 'Kronisk hjertesygdom', subLabel: 'Gælder ikke hvis du udelukkende behandles for forhøjet blodtryk', subWarning: true },
+    { key: 'lungDisease',   label: 'Kronisk lungesygdom' },
+    { key: 'kidneyChronic', label: 'Kronisk nyresygdom' },
+    { key: 'liverChronic',  label: 'Kronisk leversygdom' }
+];
+
+var kolCondition = { key: 'lungChronic', label: 'KOL (Kronisk Obstruktiv Lungesygdom)' };
+
+var vaccines = {
+    pcv: {
+        name: 'Pneumokokker',
+        desc: 'Beskytter mod lungebetændelse',
+        icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27717d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.08 9.5A4 4 0 0 1 12 4a4 4 0 0 1 5.92 5.5"/><path d="M12 4v16"/><path d="M8 13c-2.5 0-4 2-4 4.5S5 21 7 21c2.5 0 5-2 5-6"/><path d="M16 13c2.5 0 4 2 4 4.5S19 21 17 21c-2.5 0-5-2-5-6"/></svg>'
+    },
+    shingrix: {
+        name: 'Helvedesild',
+        desc: 'Herpes zoster',
+        icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27717d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+    },
+    rsv: {
+        name: 'RS-virus',
+        desc: 'Luftvejsinfektion',
+        icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27717d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>'
+    }
+};
+
+// Hvilke tilstande der er relevante for hver vaccine. Reglerne i calculate() er uændrede.
+function groupsFor(vaccine, age) {
+    if (vaccine === 'pcv') {
+        var groups = [{ title: 'Svær immunsvækkelse / særlige tilstande', items: immuneConditions }];
+        // Kroniske sygdomme giver kun tilskud fra 65 år, så de vises kun dér.
+        if (age >= 65) groups.unshift({ title: 'Kroniske sygdomme', items: chronicConditions.concat([kolCondition]) });
+        return groups;
+    }
+    if (vaccine === 'shingrix') {
+        return [{ title: 'Immunsvækkelse', items: [immuneConditions[0]] }];
+    }
+    if (vaccine === 'rsv') {
+        return [{ title: 'Lungesygdom', items: [kolCondition] }];
+    }
+    return [
+        { title: 'Svær immunsvækkelse / særlige tilstande', items: immuneConditions },
+        { title: 'Kroniske sygdomme', meta: '(Primært relevant for 65+)', items: chronicConditions },
+        { title: 'Lungesygdomme', items: [kolCondition] }
+    ];
+}
+
+function buildConditionGroups() {
+    var container = document.getElementById('conditionGroups');
+    container.innerHTML = '';
+    var age = parseInt(state.age) || 0;
+    groupsFor(state.vaccine, age).forEach(function(group) {
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var header = document.createElement('div');
+        header.className = 'card-header';
+        var title = document.createElement('span');
+        title.className = 'card-title';
+        title.textContent = group.title;
+        header.appendChild(title);
+        if (group.meta) {
+            var meta = document.createElement('span');
+            meta.className = 'card-meta';
+            meta.textContent = group.meta;
+            header.appendChild(meta);
+        }
+        card.appendChild(header);
+
+        group.items.forEach(function(item) {
+            var row = document.createElement('label');
+            row.className = 'condition-row' + (state.conditions[item.key] ? ' checked' : '');
+
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = state.conditions[item.key];
+            cb.addEventListener('change', function() { toggleCondition(item.key); });
+
+            var textWrap = document.createElement('div');
+            var span = document.createElement('span');
+            span.className = 'condition-label';
+            span.textContent = item.label;
+            textWrap.appendChild(span);
+
+            if (item.subLabel) {
+                var sub = document.createElement('div');
+                sub.className = 'condition-sublabel' + (item.subWarning ? ' warning' : '');
+                sub.textContent = item.subLabel;
+                textWrap.appendChild(sub);
+            }
+
+            row.appendChild(cb);
+            row.appendChild(textWrap);
+            card.appendChild(row);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+function buildVaccineList() {
+    var list = document.getElementById('vaccineList');
+    list.innerHTML = '';
+    ['pcv', 'shingrix', 'rsv'].forEach(function(key) {
+        var v = vaccines[key];
+        var btn = document.createElement('button');
+        btn.className = 'vaccine-btn';
+        btn.innerHTML = '<span class="v-icon">' + v.icon + '</span>'
+            + '<span><span class="v-name" style="display:block">' + v.name + '</span>'
+            + '<span class="v-desc" style="display:block">' + v.desc + '</span></span>'
+            + '<span class="v-arrow"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>';
+        btn.addEventListener('click', function() { chooseVaccine(key); });
+        list.appendChild(btn);
+    });
+}
+
+function toggleCondition(key) {
+    state.conditions[key] = !state.conditions[key];
+    render();
+}
+
+function chooseVaccine(key) {
+    state.vaccine = key;
+    goTo('check');
+}
+
+function goTo(step) {
+    state.step = step;
+    render();
+    window.scrollTo(0, 0);
+    if (step === 'age') document.getElementById('ageInput').focus();
+}
+
+function toggleRules() {
+    state.showRules = !state.showRules;
+    document.getElementById('rulesBox').classList.toggle('hidden', !state.showRules);
+    document.getElementById('rulesToggleText').textContent =
+        state.showRules ? 'Skjul Regler (Tekstoverblik)' : 'Vis Regler (Tekstoverblik)';
+    sendHeight();
+}
+
+function calculate() {
+    var age = parseInt(state.age) || 0;
+    var c = state.conditions;
+    var hasSevereImmune = c.splenectomy || c.organTransplant || c.stemCell || c.cochlear || c.csfLeak || c.prevInvasive || c.immunosuppression;
+    var hasChronicDisease = c.diabetes || c.heartChronic || c.lungDisease || c.lungChronic || c.kidneyChronic || c.liverChronic;
+    return {
+        age: age,
+        hasSevereImmune: hasSevereImmune,
+        hasChronicDisease: hasChronicDisease,
+        pcv:      (age >= 18 && hasSevereImmune) || (age >= 65 && hasChronicDisease),
+        rsv:      age >= 60 && c.lungChronic,
+        shingrix: age >= 18 && c.immunosuppression
+    };
+}
+
+function iconCheck() {
+    return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+}
+function iconX() {
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>';
+}
+function iconExternal() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>';
+}
+function iconCalendar() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+}
+
+function resultCardHTML(title, subtitle, eligible, reason) {
+    var actions = '<div class="result-actions">';
+    if (eligible) {
+        actions += '<a href="https://medicals.app4.geckobooking.dk/site/index.php?icCode=038dfa5634ed32994ee62dc273ef2f26b9708&dTpl=1" target="_blank" rel="noopener noreferrer" class="btn-book">Book tid ' + iconCalendar() + '</a>';
+    }
+    actions += '<a href="https://www.sst.dk/vidensbase/forebyggelse/vaccination/tilskud-til-vacciner-til-visse-persongrupper" target="_blank" rel="noopener noreferrer" class="link-laes">Læs mere ' + iconExternal() + '</a>';
+    actions += '</div>';
+    return '<div class="result-card' + (eligible ? ' eligible' : '') + '">'
+        + '<div class="result-card-body">'
+        + '<div class="result-card-title">' + title + '</div>'
+        + '<div class="result-card-sub">' + subtitle + '</div>'
+        + '<div class="result-reason">' + reason + '</div>'
+        + actions
+        + '</div>'
+        + '<div class="result-icon">' + (eligible ? iconCheck() : iconX()) + '</div>'
+        + '</div>';
+}
+
+function pcvHTML(r) {
+    var age = r.age;
+    var pcvReason = r.pcv
+        ? (age >= 65 && !r.hasSevereImmune ? 'Godkendt pga. Alder 65+ OG Kronisk Sygdom' : 'Godkendt pga. Særlig Risikogruppe')
+        : (age >= 65 ? 'Mangler kronisk diagnose for tilskud' : 'Ikke i målgruppen');
+    return resultCardHTML('20-valent pneumokokvaccine', 'Konjugeret vaccine', r.pcv, pcvReason)
+        + resultCardHTML('21-valent pneumokokvaccine', 'Konjugeret vaccine', r.pcv, pcvReason);
+}
+
+function shingrixHTML(r) {
+    var shingReason = r.shingrix ? 'Godkendt pga. Immunsuppression' : 'Ikke godkendt. Kræver immunsuppression.';
+    return resultCardHTML('Helvedesild', 'Inaktiveret rekombinant vaccine', r.shingrix, shingReason);
+}
+
+function rsvHTML(r) {
+    var rsvReason = r.rsv ? 'Godkendt pga. Alder 60+ og KOL' : (r.age >= 60 ? 'Mangler KOL diagnose' : 'Kræver alder 60+');
+    return resultCardHTML('RS-virus', 'RSV-vaccine', r.rsv, rsvReason);
+}
+
+function renderResults(r) {
+    var html = '';
+    if (state.vaccine === 'pcv') html = pcvHTML(r);
+    else if (state.vaccine === 'shingrix') html = shingrixHTML(r);
+    else if (state.vaccine === 'rsv') html = rsvHTML(r);
+    else {
+        html += '<div class="section-label">Pneumokokker</div>' + pcvHTML(r);
+        html += '<div class="section-label">Helvedesild (Herpes Zoster)</div>' + shingrixHTML(r);
+        html += '<div class="section-label">RS-Virus</div>' + rsvHTML(r);
+    }
+    document.getElementById('resultsContainer').innerHTML = html;
+    document.getElementById('btnShowAll').classList.toggle('hidden', state.vaccine === 'all');
+
+    var vName = state.vaccine === 'all' ? 'Alle vacciner' : vaccines[state.vaccine].name;
+    document.getElementById('checkSummary').innerHTML =
+        'Alder: <strong>' + r.age + ' år</strong> &middot; Vaccine: <strong>' + vName + '</strong>';
+}
+
+function renderSteps() {
+    var labels = [['age', 'Alder'], ['vaccine', 'Vaccine'], ['check', 'Resultat']];
+    var order = { age: 0, vaccine: 1, check: 2 };
+    var cur = order[state.step];
+    var html = '';
+    labels.forEach(function(l, i) {
+        if (i > 0) html += '<span class="step-sep"></span>';
+        var cls = i === cur ? ' active' : (i < cur ? ' done' : '');
+        html += '<span class="step-pill' + cls + '"><span class="num">' + (i + 1) + '</span>' + l[1] + '</span>';
+    });
+    document.getElementById('steps').innerHTML = html;
+}
+
+function render() {
+    var age = parseInt(state.age);
+    var hasAge = state.age !== '' && !isNaN(age);
+    var validAge = hasAge && age >= 18;
+
+    if (!validAge && state.step !== 'age') state.step = 'age';
+
+    document.getElementById('alertUnder18').classList.toggle('hidden', !(hasAge && age < 18));
+    document.getElementById('btnAgeNext').disabled = !validAge;
+
+    document.getElementById('stepAge').classList.toggle('hidden', state.step !== 'age');
+    document.getElementById('stepVaccine').classList.toggle('hidden', state.step !== 'vaccine');
+    document.getElementById('stepCheck').classList.toggle('hidden', state.step !== 'check');
+
+    renderSteps();
+
+    if (state.step === 'check') {
+        var rsvTooYoung = state.vaccine === 'rsv' && age < 60;
+        document.getElementById('rsvUnder60').classList.toggle('hidden', !rsvTooYoung);
+        document.getElementById('checkGrid').classList.toggle('hidden', rsvTooYoung);
+        buildConditionGroups();
+        renderResults(calculate());
+    }
+
+    sendHeight();
+}
+
+function sendHeight() {
+    var wrapper = document.getElementById('app-wrapper');
+    if (wrapper) {
+        window.parent.postMessage({ type: 'iframeResize', height: wrapper.scrollHeight }, '*');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var ageInput = document.getElementById('ageInput');
+    ageInput.addEventListener('input', function(e) {
+        state.age = e.target.value;
+        render();
+    });
+    ageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !document.getElementById('btnAgeNext').disabled) goTo('vaccine');
+    });
+    document.getElementById('btnAgeNext').addEventListener('click', function() { goTo('vaccine'); });
+
+    buildVaccineList();
+    render();
+    if (window.ResizeObserver) {
+        new ResizeObserver(function() { sendHeight(); }).observe(document.getElementById('app-wrapper'));
+    }
+    window.addEventListener('resize', sendHeight);
+    setInterval(sendHeight, 500);
+});
+</script>
+</body>
+</html>
